@@ -112,6 +112,7 @@ class  Clearvoice_Custom_Posts_Freelancer extends \Elementor\Widget_Base {
 				'label'       => esc_html__( 'Posts Per Page', 'ClearVoice-backend-functionality' ),
 				'type'        => \Elementor\Controls_Manager::NUMBER,
 				'min'         => -1,
+				'default'     => 3,
 			)
 		);
 		$this->add_control(
@@ -157,17 +158,18 @@ class  Clearvoice_Custom_Posts_Freelancer extends \Elementor\Widget_Base {
 	protected function render() {
 		$settings          = $this->get_settings_for_display();
 		$clv_post_per_page = isset( $settings['clv_posts_per_page'] ) ? $settings['clv_posts_per_page'] : -1;
-		$clv_categories    = isset( $settings['clv_categories'] ) ? $settings['clv_categories'] : array();
-		$clv_order         = isset( $settings['clv_order'] ) ? $settings['clv_order'] : 'ASC';
-		$clv_order_by      = isset( $settings['clv_order_by'] ) ? $settings['clv_order_by'] : 'date';
+		$clv_categories    = isset( $settings['clv_categories'] ) ? ( $settings['clv_categories'] ) : array();
+		$clv_order         = isset( $settings['clv_order'] ) ? ( $settings['clv_order'] ) : 'ASC';
+		$clv_order_by      = isset( $settings['clv_order_by'] ) ? ( $settings['clv_order_by'] ) : 'date';
 
+		$clv_taxanomy      = taxonomy_exists( 'clv-hire-freelancer-categories' ) ? 'clv-hire-freelancer-categories' : '' ;
 		// Let's do the query magic now.
 		$args = array(
-			'post_type' => 'any',
+			'post_type' => 'clv-hire-freelancer',
 			'tax_query' => array(
 				array(
-					'taxonomy' => 'clv-hire-freelancer-categories',
-					'field'    => 'slug',
+					'taxonomy' => $clv_taxanomy,
+					'field'    => 'name',
 					'terms'    => $clv_categories,
 				)
 			),
@@ -184,6 +186,7 @@ class  Clearvoice_Custom_Posts_Freelancer extends \Elementor\Widget_Base {
 				$query->the_post();
 				$clv_post_categories       = get_the_terms( get_the_ID(), 'clv-hire-freelancer-categories' );
 				$clv_current_category_name = isset( $clv_post_categories[0]->name ) ? $clv_post_categories[0]->name : '';
+				$clv_current_category_name = sanitize_text_field( $clv_current_category_name );
 				?>
 				<div class="post-single">
 				<a href="<?php echo esc_url( get_permalink() ); ?>" class="clv-featured-img">
@@ -201,6 +204,8 @@ class  Clearvoice_Custom_Posts_Freelancer extends \Elementor\Widget_Base {
 				<?php
 
 			}
+		} else {
+			echo '<div><p>No Posts Found...</p></div>';
 		}
 		// Reset Query.
 		wp_reset_postdata();
